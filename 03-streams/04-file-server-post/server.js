@@ -23,7 +23,7 @@ server.on('request', (req, res) => {
       const writeStream = fs.createWriteStream(filepath, {
         flags: 'wx'
       });
-      const limitSizeStream = new LimitSizeStream({limit: 1024});
+      const limitSizeStream = new LimitSizeStream({limit: 1000000});
       req.pipe(limitSizeStream).pipe(writeStream);
 
       req.on('aborted',()=> {
