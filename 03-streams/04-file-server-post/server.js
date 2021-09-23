@@ -10,7 +10,7 @@ server.on('request', (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const pathname = url.pathname.slice(1);
 
-  if (pathname.indexOf('/') > 0) {
+  if (pathname.indexOf('/') > 0 || pathname.includes('..')) {
     res.statusCode = 400;
     res.end('Nested paths are not allowed');
     return;
@@ -26,11 +26,17 @@ server.on('request', (req, res) => {
       const limitSizeStream = new LimitSizeStream({limit: 1024});
       req.pipe(limitSizeStream).pipe(writeStream);
 
+      req.on('aborted',()=> {
+        writeStream.destroy();
+        limitSizeStream.destroy();
+        fs.unlink(filepath, err => {});
+        console.log("client request is aborted")
+      });
+
       writeStream.on('finish', () => {
         res.statusCode = 201;
         res.end('File saved');
-        return;
-      })
+      });
 
       limitSizeStream.on('error', (error) => {
         if (error.code === 'LIMIT_EXCEEDED') {
@@ -39,31 +45,23 @@ server.on('request', (req, res) => {
           writeStream.destroy();
 
           fs.unlink(filepath, err => {});
-          return;
+        } else {
+          res.statusCode = 500;
+          res.end('Something goes wrong on a server')
         }
-      })
+      });
 
       writeStream.on('error', (error) => {
-        console.log('error', error);
-        if (error.code === "EEXIST") {
-          writeStream.destroy();
+        if (error.code === 'EEXIST') {
           res.statusCode = 409;
           res.end('File already exists');
           return;
+        } else {
+          writeStream.destroy();
+          res.statusCode = 500;
+          res.end('Something goes wrong on a server')
+          return;
         }
-
-        writeStream.destroy();
-        res.statusCode = 500;
-        res.end('Something goes wrong on a server')
-        return;
-
-      })
-
-      req.on('abort',()=> {
-        writeStream.destroy();
-        limitSizeStream.destroy();
-        fs.unlink(filepath, err => {});
-        console.log("client request is aborted")
       });
 
       break;
