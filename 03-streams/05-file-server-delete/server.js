@@ -33,11 +33,6 @@ server.on('request', (req, res) => {
           return;
         }
       });
-
-  switch (req.method) {
-    case 'DELETE':
-
-
       break;
 
     default:

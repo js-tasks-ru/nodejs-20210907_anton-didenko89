@@ -12,6 +12,7 @@ server.on('request', (req, res) => {
   if (pathname.indexOf('/') > 0) {
     res.statusCode = 400;
     res.end('Nested paths are not allowed');
+    return;
   }
 
   const filepath = path.join(__dirname, 'files', pathname);
