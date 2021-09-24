@@ -3,6 +3,7 @@ const http = require('http');
 const path = require('path');
 const fs = require('fs');
 
+
 const server = new http.Server();
 
 server.on('request', (req, res) => {
@@ -10,6 +11,7 @@ server.on('request', (req, res) => {
   const pathname = url.pathname.slice(1);
 
   const filepath = path.join(__dirname, 'files', pathname);
+
 
   if (pathname.indexOf('/') > 0 || pathname.includes('..')) {
     res.statusCode = 400;
@@ -31,6 +33,11 @@ server.on('request', (req, res) => {
           return;
         }
       });
+
+  switch (req.method) {
+    case 'DELETE':
+
+
       break;
 
     default:
